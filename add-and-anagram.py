@@ -1,22 +1,21 @@
 import marisa_trie
 
-with open('ospd.txt') as word_file:
-	dictionary = []
-	for line in word_file:
-		dictionary.append(unicode(line.strip()))
-
-dictionary_by_length = dict()
+with open('dictionary.marisa', 'r') as dictionary_file:
+	trie = marisa_trie.Trie()
+	trie.read(dictionary_file)
 
 # A prefix trie of all words. Gives a lookup time of O(word_length).
 # Considering that the dictionary does not contain words longer than 10 letters
 # we can reasonably assume the time complexity to be O(1) for lookup
-trie = marisa_trie.Trie(dictionary)
+
 
 # Dictionary ordered by length to speed up retrieval of words of a specific length
+dictionary_by_length = dict()
+
 for i in range(1, 10):
 	dictionary_by_length[i] = []
 
-for word in dictionary:
+for word in trie.keys():
 	dictionary_by_length[len(word)].append(word)
 
 alphabet = 'abcdefghijklmnopqrstuvwxyz'
