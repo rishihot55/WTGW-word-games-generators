@@ -6,9 +6,11 @@ def running_letters(needle, eight_letter_words):
 		haystack = fodder + fodder
 		if needle in haystack:
 			valid_words.append(fodder)
+			
 	categories = dict()
 	for i in range(0,8):
 		categories[i] = []
+
 	for word in valid_words:
 		index = (word + word).find(needle)
 		print index
