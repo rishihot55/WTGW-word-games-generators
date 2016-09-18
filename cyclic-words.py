@@ -2,33 +2,31 @@ def running_letters(needle, eight_letter_words):
 	valid_words = []
 	alphabet = 'abcdefghijklmnopqrstuvwxyz'
 
-	for fodder in eight_letter_words:
-		haystack = fodder + fodder
-		if needle in haystack:
-			valid_words.append(fodder)
-			
+	# Get all words which contain the needle in their rotation
+	valid_words = [fodder for fodder in eight_letter_words 
+		if needle in fodder + fodder]
+
 	categories = dict()
 	for i in range(0,8):
 		categories[i] = []
 
 	for word in valid_words:
 		index = (word + word).find(needle)
-		print index
 		categories[index].append(word)
 
 	for index in categories.keys():
-		print index, ":", sorted(categories[index])
+		print('{0}: {1}'.format(index, sorted(categories[index])))
 
 def main():
 	dictionary = set()
-	print "Enter running letters:"
-	needle = raw_input()
+	print("Enter running letters:")
+	needle = input()
 
 	with open('ospd.txt') as file_reader:
 		for line in file_reader:
 			dictionary.add(line.strip())
 
-	eight_letter_words = filter(lambda x: len(x) == 8, dictionary)
+	eight_letter_words = [word for word in dictionary if len(word) == 8]
 
 	running_letters(needle, eight_letter_words)
 
