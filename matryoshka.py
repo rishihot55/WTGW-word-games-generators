@@ -1,47 +1,67 @@
 import marisa_trie
+import argparse
 
-with open('dictionary.marisa', 'r') as dictionary_file:
-    trie = marisa_trie.Trie()
-    trie.read(dictionary_file)
+def find_doll_words(dictionary, reverse, min_word_length):
+    for word in dictionary:
+        for sub_word_start_index in range(1, len(word) - 1):
+            for sub_word_end_index in range(sub_word_start_index + min_word_length, len(word) - 1):
+                candidate_sub_word = word[sub_word_start_index:sub_word_end_index] if not reverse else word[sub_word_start_index:sub_word_end_index][::-1]
+                if candidate_sub_word in dictionary:
+                    outer_word = word[:sub_word_start_index] + word[sub_word_end_index:]
+                    if outer_word in dictionary:
+                        print(candidate_sub_word, "->", outer_word, "=", word)
 
-def find_doll_words():
-    non_short_words = []
-    non_short_words = filter(
-        lambda w: len(w) > 2,
-        trie.keys())
+def find_triple_doll_words(dictionary, min_word_length):
+    for word in dictionary:
+        wlen = len(word)
+        for sub_word_start_index in range(1, wlen - 1):
+            for sub_word_end_index in range(sub_word_start_index + min_word_length, wlen - 1):
+                candidate_sub_word = word[sub_word_start_index:sub_word_end_index]
+                for sub_sub_word_start_index in range(sub_word_start_index + 1, sub_word_end_index - 1):
+                    for sub_sub_word_end_index in range(sub_sub_word_start_index + min_word_length, sub_word_end_index - 1):
+                        sub_sub_word = word[sub_sub_word_start_index: sub_sub_word_end_index]
+                        if sub_sub_word in dictionary:
+                            middle_word = word[sub_word_start_index:sub_sub_word_start_index] + word[sub_sub_word_end_index:sub_word_end_index]
+                            if middle_word in dictionary:
+                                outer_word = word[:sub_word_start_index] + word[sub_word_end_index:]
+                                if outer_word in dictionary:
+                                    print(sub_sub_word, middle_word, outer_word, "= ", word)
 
-    medium_length_words = []
 
-    medium_length_words = filter(
-        lambda w: len(w) < 5,
-        non_short_words)
+def load_trie(filename):
+    with open(filename) as dict_trie:
+        trie = marisa_trie.Trie()
+        trie.read(dict_trie)
+        return trie
 
-    long_words = []
+def load_text_file(filename):
+    with open(filename) as text_file:
+        words = [word.strip() for word in text_file]
+        trie = marisa_trie.Trie(words)
+        return trie
 
-    '''
-        The letter s creates a lot of 'lazy' entries such as 
-        call > miss = mis(call)s.
-        call > cats = cat(call)s
-        This is because of the fact that s is the suffix for pluralizing words
-        Similarly 'ed' creates a verb form of the word such as : 
-        space > red = respaced
-        slime > bed = beslimed
-    '''
-    long_words = filter(
-        lambda w: len(w) > 5 and w[-1] != 's',
-        non_short_words)
+def load_dictionary(filename):
+    extension = filename.split('.')[-1]
+    if extension == 'marisa':
+        return load_trie(filename)
+    elif extension == 'txt':
+        return load_text_file(filename)
 
-    # Better word combinations can be found using words that aren't short and words that are long
-    # This also makes the program more efficient since the word space is smaller
-    for inner in medium_length_words:
-        for outer in long_words:
-            if outer.find(inner) > 0:
-                subtracted_word = outer.replace(inner,'')
-                if subtracted_word in trie and (subtracted_word + inner) != outer:
-                    print (inner, subtracted_word, outer)
 
 def main():
-    find_doll_words()
+    parser = argparse.ArgumentParser(description='Russian Dolls generator')
+    parser.add_argument('--reverse', help='Finds reverse Russian Dolls', action='store_true')
+    parser.add_argument('--triple', help='Finds triple doll words', action='store_true')
+    parser.add_argument('--dictionary', default='dictionary.marisa')
+    parser.add_argument('--length', help='Minimum word length', type=int, default=2)
+    args = parser.parse_args()
+
+    dictionary = load_dictionary(args.dictionary)
+
+    if args.triple:
+        find_triple_doll_words(dictionary, min_word_length=args.length)
+    else:
+        find_doll_words(dictionary, reverse=args.reverse, min_word_length=args.length)
 
 if __name__ == "__main__":
     main()
