@@ -1,4 +1,6 @@
 import pickle
+import argparse
+
 
 class Graph():
     def __init__(self):
@@ -40,8 +42,16 @@ with open('addagram_graph.pkl', 'rb') as pkl_file:
 g = data['graph']
 word_list_map = data['word_list_map']
 
-def generate_addagrams(word, max_length):
+def generate_addagrams(word, sequence_length):
     word_set = word_to_multiset(word)
-    g.dfs(word_set, max_length)
+    g.dfs(word_set, sequence_length)
 
-generate_addagrams('as', 7)
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Addagrams generator')
+    parser.add_argument('starting_word', help='Word from which to generate addagrams')
+    parser.add_argument('-l', help='Maximum length of generated words', type=int, default=7)
+    args = parser.parse_args()
+    if args.starting_word:
+        generate_addagrams(args.starting_word, args.l - 2 + len(args.starting_word))
+    else:
+        parser.print_help()

@@ -65,8 +65,6 @@ def word_to_multiset(word):
         multiset += 10**(ord(letter) - 97)
     return multiset
 
-g = Graph()
-
 dict_by_length = {}
 for word in dictionary:
     l = len(word)
@@ -84,16 +82,32 @@ def letter_count(multiset):
         multiset //= 10
     return letter_count
 
-empty_multiset = word_to_multiset('')
-seen_multisets = set()
+# two letter words containing a or i will appear anyway, so we ignore those
+single_letter_word_data = [(word, word_set) for (word, word_set) in dict_by_length[1]]
+single_letter_word_sets = [word_set for (_, word_set) in single_letter_word_data]
+two_letter_word_data = [(word, word_set) for (word, word_set) in dict_by_length[2] if 'a' not in word and 'i' not in word]
+two_letter_word_sets = [word_set for (_, word_set) in two_letter_word_data]
 
-g.add_vertex(empty_multiset)
-seen_multisets.add(empty_multiset)
+seed_word_data = single_letter_word_data + two_letter_word_data
+seed_word_sets = single_letter_word_sets + two_letter_word_sets
+
+g = Graph()
+for word_set in seed_word_sets:
+    g.add_vertex(word_set)
+
+seen_multisets = set()
+seen_multisets.update(seed_word_sets)
 
 active_vertices = []
-active_vertices.append(empty_multiset)
+active_vertices.extend(seed_word_sets)
 
 word_list_map = {}
+
+for (word, word_set) in seed_word_data:
+    if word_set in word_list_map:
+        word_list_map[word_set].append(word)
+    else:
+        word_list_map[word_set] = [word]
 
 while active_vertices:
     current_set = active_vertices.pop(0)
